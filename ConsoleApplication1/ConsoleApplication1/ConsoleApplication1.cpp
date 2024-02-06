@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <conio.h>
 #include <vector>
 
 int g_iWidth;
@@ -9,6 +10,7 @@ std::pair<int, int> g_pairPlayerPos;
 std::pair<int, int> g_pairFlagPos;
 std::pair<int, int> g_pairGoalPos;
 bool g_bGameRun = false;
+
 
 enum class EMoveDirection
 {
@@ -72,8 +74,10 @@ int main()
     // Play Start
     while (g_bGameRun)
     {
-        unsigned char cCommand = _getwch();
-        std::cin >> cCommand;
+        unsigned char cCommand = [] {    
+            while (!_kbhit())
+                return _getch();            
+        }();
         
         if (cCommand == 'w' || cCommand == 'W')
         {
@@ -99,6 +103,8 @@ int main()
     system("cls");
     std::cout << "GameEnd";
 
+    delete[] g_ucMap;
+
     int iTemp = 0;
 }
 
@@ -120,7 +126,7 @@ void DrawMap()
     {
         for (int j = 0; j < g_iHeight; j++)
         {
-            std::cout << g_ucMap[i * g_iWidth + j];
+            std::cout << ' ' << g_ucMap[i * g_iWidth + j] << ' ';
         }
 
         std::cout << std::endl;
@@ -130,15 +136,6 @@ void DrawMap()
 
 bool PlaceObject(int iX, int iY, unsigned char ucObject)
 {
-    //// Target Pos가 벽이 아닐 경우 ucObject를 iX, iY위치에 배치
-    //if (WallCheck(iX, iY) != true)
-    //{
-    //    int iObjectPos = iY * g_iHeight + iX;
-    //    g_ucMap[iObjectPos] = ucObject;
-    //    return true;
-    //}        
-    //else
-    //    return false;
     int iObjectPos = iY * g_iHeight + iX;
     g_ucMap[iObjectPos] = ucObject;
 
