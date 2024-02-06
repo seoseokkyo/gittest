@@ -75,8 +75,11 @@ int main()
     while (g_bGameRun)
     {
         unsigned char cCommand = [] {    
-            while (!_kbhit())
-                return _getch();            
+            while (1)
+            {
+                if (_kbhit())
+                    return _getch();
+            }                
         }();
         
         if (cCommand == 'w' || cCommand == 'W')
