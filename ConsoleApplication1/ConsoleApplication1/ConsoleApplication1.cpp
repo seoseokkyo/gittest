@@ -5,7 +5,7 @@
 int g_iWidth;
 int g_iHeight;
 int g_iMapSize;
-unsigned char* g_ucMap;
+char** g_chMap;
 std::pair<int, int> g_pairPlayerPos;
 std::pair<int, int> g_pairFlagPos;
 std::pair<int, int> g_pairGoalPos;
@@ -41,9 +41,13 @@ int main()
     g_iWidth = 30;
     g_iHeight = 30;
     g_iMapSize = g_iWidth * g_iHeight;
-
-    g_ucMap = new unsigned char[g_iMapSize];
-    memset(g_ucMap, ' ', sizeof(unsigned char)* g_iMapSize);
+    
+	g_chMap = new char*[g_iWidth];
+	for (int i = 0; i < g_iWidth; i++)
+	{
+		g_chMap[i] = new char[g_iHeight];
+		memset(g_chMap[i], ' ', sizeof(char)* g_iHeight);
+	}    
 
     // Player Place
     g_pairPlayerPos.first = 3;
@@ -106,7 +110,9 @@ int main()
     system("cls");
     std::cout << "GameEnd";
 
-    delete[] g_ucMap;
+    //
+	for (int i = 0; i < g_iWidth; i++)
+		delete[] g_chMap[i];
 
     int iTemp = 0;
 }
@@ -117,7 +123,7 @@ void FillWall()
     {
         for (int j = 0; j < g_iHeight; j++)
         {
-            if (i == 0 || j == 0 || i == g_iHeight - 1 || j == g_iWidth - 1)
+            if (i == 0 || j == 0 || i == g_iWidth - 1 || j == g_iHeight - 1)
                 PlaceObject(i, j, 'W');
         }
     }
@@ -125,11 +131,11 @@ void FillWall()
 
 void DrawMap()
 {
-    for (int i = 0; i < g_iWidth; i++)
+	for (int i = 0; i < g_iHeight; i++)    
     {
-        for (int j = 0; j < g_iHeight; j++)
+		for (int j = 0; j < g_iWidth; j++)
         {
-            std::cout << ' ' << g_ucMap[i * g_iWidth + j] << ' ';
+            std::cout << ' ' << g_chMap[j][i] << ' ';
         }
 
         std::cout << std::endl;
@@ -139,8 +145,7 @@ void DrawMap()
 
 bool PlaceObject(int iX, int iY, unsigned char ucObject)
 {
-    int iObjectPos = iY * g_iHeight + iX;
-    g_ucMap[iObjectPos] = ucObject;
+	g_chMap[iX][iY] = ucObject;
 
     return true;
 }
@@ -171,21 +176,19 @@ bool Move(int& iX, int& iY, EMoveDirection eDirection)
 
     if (WallCheck(iTargetPosX, iTargetPosY) != true)
     {
-        int iObjectPos = iY * g_iHeight + iX;
-        unsigned char ucTemp = g_ucMap[iObjectPos];
-        g_ucMap[iObjectPos] = ' ';
-
-        int iNewObjectPos = iTargetPosY * g_iHeight + iTargetPosX;
+        unsigned char ucTemp = g_chMap[iOriginPosX][iOriginPosY];
+		
         iX = iTargetPosX;
         iY = iTargetPosY;
 
-        if (g_ucMap[iNewObjectPos] == 'G' && ucTemp == 'F')
+        if (g_chMap[iTargetPosX][iTargetPosY] == 'G' && g_chMap[iOriginPosX][iOriginPosY] == 'F')
         {
             g_bGameRun = false;
             return false;
         }
 
-        g_ucMap[iNewObjectPos] = ucTemp;
+		g_chMap[iOriginPosX][iOriginPosY] = ' ';
+		g_chMap[iTargetPosX][iTargetPosY] = ucTemp;
 
         return true;
     }
@@ -197,8 +200,8 @@ bool Move(int& iX, int& iY, EMoveDirection eDirection)
 
 void CharactorMove(EMoveDirection eDirection)
 {
-    int iOriginPosX = g_pairFlagPos.first;
-    int iOriginPosY = g_pairFlagPos.second;
+    int iOriginPosX = g_pairPlayerPos.first;
+    int iOriginPosY = g_pairPlayerPos.second;
 
     int iDirectionX = g_pairMove[(int)eDirection].first;
     int iDirectionY = g_pairMove[(int)eDirection].second;
@@ -206,11 +209,9 @@ void CharactorMove(EMoveDirection eDirection)
     int iTargetPosX = iOriginPosX + iDirectionX;
     int iTargetPosY = iOriginPosY + iDirectionY;
 
-    int iNewObjectPos = iOriginPosY * g_iHeight + iOriginPosX;
-
     if ((g_pairPlayerPos.first + iDirectionX == g_pairFlagPos.first) && 
         (g_pairPlayerPos.second + iDirectionY == g_pairFlagPos.second) &&
-        g_ucMap[iNewObjectPos] == 'F')
+		g_chMap[iTargetPosX][iTargetPosY] == 'F')
     {
         Move(g_pairFlagPos.first, g_pairFlagPos.second, eDirection);
     }
